@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 export default async (req, res) => {
   try {
     const { path } = req.query;
@@ -10,35 +8,26 @@ export default async (req, res) => {
     
     const githubToken = process.env.GITHUB_TOKEN;
     
-    console.log('[DEBUG] GitHub token exists:', !!githubToken);
-    console.log('[DEBUG] Requesting path:', path);
-    
     if (!githubToken) {
       return res.status(500).send('-- GitHub token not configured');
     }
     
-    const scriptUrl = `https://api.github.com/repos/kyr2o/Crimson-Hub/contents${path}`;
-    
-    console.log('[DEBUG] Full URL:', scriptUrl);
-    
-    const response = await axios.get(scriptUrl, {
+    const response = await fetch(`https://api.github.com/repos/kyr2o/Crimson-Hub/contents${path}`, {
       headers: {
         'Authorization': `token ${githubToken}`,
-        'Accept': 'application/vnd.github.v3.raw',
-        'User-Agent': 'Crimson-Hub-API'
+        'Accept': 'application/vnd.github.v3.raw'
       }
     });
     
-    console.log('[DEBUG] GitHub response status:', response.status);
-    
-    res.setHeader('Content-Type', 'text/plain');
-    res.status(200).send(response.data);
-  } catch (error) {
-    console.error('[ERROR] Script error:', error.message);
-    if (error.response) {
-      console.error('[ERROR] GitHub status:', error.response.status);
-      console.error('[ERROR] GitHub error:', error.response.data);
+    if (!response.ok) {
+      return res.status(response.status).send(`-- GitHub API error: ${response.status}`);
     }
-    res.status(404).send('-- Script not found');
+    
+    const data = await response.text();
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(200).send(data);
+  } catch (error) {
+    console.error('Script error:', error.message);
+    res.status(500).send('-- Error loading script');
   }
 };

@@ -1,0 +1,12 @@
+{
+  "name": "crimson-api",
+  "version": 2,
+  "public": false,
+  "builds": [],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 128,
+      "maxDuration": 30
+    }
+  }
+}
